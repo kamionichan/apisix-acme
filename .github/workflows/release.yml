@@ -1,27 +1,21 @@
-name: Release
+name: Build and Push Docker Image
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.ref }}
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-      - name: Publish Docker
-        run: |
-          rm -rf dist
-          docker build --no-cache --rm --tag tmaize/apisix-acme:${{ github.ref_name }} .
-          docker push tmaize/apisix-acme:${{ github.ref_name }}
+      - name: Build Docker image
+        run: docker build -t kamionichan/apisix-acme:latest .
+
+      - name: Push Docker image
+        run: docker push kamionichan/apisix-acme:latest
